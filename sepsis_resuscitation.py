@@ -11,9 +11,9 @@ License: MIT
 import argparse
 import csv
 import datetime
-import json
 import sys
 import uuid
+from pathlib import Path
 from typing import Dict, Any, List, Optional
 
 
@@ -266,7 +266,25 @@ def main(argv=None):
         return 0
 
     if args.command == "batch":
-        with open(args.input, mode="r", encoding="utf-8-sig") as f:
+        try:
+            input_path = Path(args.input).resolve()
+            output_path = Path(args.output).resolve()
+            cwd = Path.cwd().resolve()
+
+            # Prevent path traversal: ensure paths are within the working directory
+            if not str(input_path).startswith(str(cwd)) or not str(output_path).startswith(str(cwd)):
+                print("Error: Path traversal detected. Paths must be within the working directory.", file=sys.stderr)
+                return 1
+
+            if not input_path.exists():
+                print(f"Error: Input file not found: '{args.input}'", file=sys.stderr)
+                return 1
+
+        except (OSError, ValueError) as e:
+            print(f"Error: Invalid path: {e}", file=sys.stderr)
+            return 1
+
+        with open(input_path, mode="r", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
             fieldnames = list(reader.fieldnames or [])
             rows = list(reader)
@@ -282,11 +300,11 @@ def main(argv=None):
             row_dict["consensus_summary"] = dossier["consensus_summary"]
             out_rows.append(row_dict)
 
-        with open(args.output, mode="w", encoding="utf-8", newline="") as f:
+        with open(output_path, mode="w", encoding="utf-8", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=out_fields)
             writer.writeheader()
             writer.writerows(out_rows)
-        print(f"Processed {len(out_rows)} records -> {args.output}")
+        print(f"Processed {len(out_rows)} records -> {output_path}")
         return 0
 
     if args.command == "serve":

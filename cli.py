@@ -3,13 +3,28 @@ Command Line Interface for Sepsis Resuscitation Agent.
 """
 import argparse
 import csv
-import json
 import sys
+from pathlib import Path
 from agents.models import SystemTaskPayload
 from agents.supervisor import SystemSupervisor
 from agents.base import AuditLogger
 
 supervisor = SystemSupervisor(model_provider="mock")
+
+
+def _validate_safe_path(file_path: str, must_exist: bool = False) -> Path:
+    """Validate that a file path is safe (no path traversal)."""
+    path = Path(file_path).resolve()
+    cwd = Path.cwd().resolve()
+
+    # Prevent path traversal: ensure the resolved path is within the working directory
+    if not str(path).startswith(str(cwd)):
+        raise ValueError(f"Path traversal detected: '{file_path}' resolves outside the working directory")
+
+    if must_exist and not path.exists():
+        raise FileNotFoundError(f"Input file not found: '{file_path}'")
+
+    return path
 
 
 def main(argv=None):
@@ -80,7 +95,15 @@ def main(argv=None):
         return 0
 
     if args.command == "batch":
-        with open(args.input, mode="r", encoding="utf-8-sig") as f:
+        try:
+            input_path = _validate_safe_path(args.input, must_exist=True)
+            output_path = _validate_safe_path(args.input + ".validated")  # temp to validate output dir
+            output_path = _validate_safe_path(args.output)
+        except (ValueError, FileNotFoundError) as e:
+            print(f"Error: {e}", file=sys.stderr)
+            return 1
+
+        with open(input_path, mode="r", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
             fieldnames = list(reader.fieldnames or [])
             rows = list(reader)
@@ -104,11 +127,11 @@ def main(argv=None):
             row_dict["audit_hash"] = dossier.audit_hash
             out_rows.append(row_dict)
 
-        with open(args.output, mode="w", encoding="utf-8", newline="") as f:
+        with open(output_path, mode="w", encoding="utf-8", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=out_fields)
             writer.writeheader()
             writer.writerows(out_rows)
-        print(f"Processed {len(out_rows)} records -> {args.output}")
+        print(f"Processed {len(out_rows)} records -> {output_path}")
         return 0
 
     if args.command == "serve":
