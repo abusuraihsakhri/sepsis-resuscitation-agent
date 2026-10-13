@@ -165,7 +165,7 @@ class SepsisCoordinator:
         if "summary" in q or "status" in q:
             return f"Sepsis-3 Resuscitation Sentinel: Dynamic Lactate Clearance & Bundle Compliance Agent currently tracking {len(self.case_registry)} cases in local air-gapped memory."
         elif "guidelines" in q or "protocol" in q:
-            return "These historical demonstration thresholds do not implement current guidelines, standards, or validated clinical algorithms."
+            return "These historical demonstration thresholds are not validated clinical algorithms or guideline-compliance checks."
         else:
             return "Local demonstration coordinator ready. No continuous physiological monitoring is implemented."
 

@@ -203,3 +203,16 @@ def test_api_contract_synthetic_payload():
         assert isinstance(client.get("/metrics").json()["dossiers_processed_total"], int)
         assert "audit_trail" in client.get("/api/audit/logs").json()
         assert "No model inference" in client.post("/api/chat", json={"query":"system status"}).json()["response"]
+
+
+
+def test_concurrent_audit_logging_keeps_valid_chain():
+    from concurrent.futures import ThreadPoolExecutor
+    trail = AuditTrail(secret_key="test-concurrent-key")
+    def make_entry(i):
+        return trail.log("worker", "test", "EVALUATE", {"index": i})
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        entries = list(executor.map(make_entry, range(100)))
+    assert len(entries) == 100
+    assert len(trail.get_trail()) == 100
+    assert trail.verify_integrity()
