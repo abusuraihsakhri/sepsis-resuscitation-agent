@@ -76,6 +76,8 @@ download.addEventListener("click", () => {
   const link = document.createElement("a");
   link.href = url;
   link.download = "synthetic-sepsis-example.json";
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
