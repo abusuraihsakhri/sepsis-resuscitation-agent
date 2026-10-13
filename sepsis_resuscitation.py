@@ -88,7 +88,7 @@ class LactateKineticsAgent:
     """Specialized Sub-Agent 2 for sepsis-resuscitation-agent"""
     def evaluate(self, payload: Dict[str, Any]) -> List[AgentAlert]:
         alerts = []
-        is_critical = bool(payload.get("critical_flag", False))
+        is_critical = str(payload.get("critical_flag", "false")).strip().lower() in ("true", "1", "yes", "y")
         val2 = float(payload.get("metric_secondary", 5.0))
         if is_critical or val2 > 12.0:
             alerts.append(
@@ -272,8 +272,12 @@ def main(argv=None):
             cwd = Path.cwd().resolve()
 
             # Prevent path traversal: ensure paths are within the working directory
-            if not str(input_path).startswith(str(cwd)) or not str(output_path).startswith(str(cwd)):
+            if not input_path.is_relative_to(cwd) or not output_path.is_relative_to(cwd):
                 print("Error: Path traversal detected. Paths must be within the working directory.", file=sys.stderr)
+                return 1
+
+            if input_path == output_path:
+                print("Error: Input and output paths must differ.", file=sys.stderr)
                 return 1
 
             if not input_path.exists():
@@ -289,7 +293,10 @@ def main(argv=None):
             fieldnames = list(reader.fieldnames or [])
             rows = list(reader)
 
-        out_fields = fieldnames + ["overall_status", "total_alerts", "critical_count", "consensus_summary"]
+        if not fieldnames:
+            print("Error: input CSV is missing a header", file=sys.stderr)
+            return 1
+        out_fields = list(dict.fromkeys(fieldnames + ["overall_status", "total_alerts", "critical_count", "consensus_summary"]))
         out_rows = []
         for r in rows:
             dossier = coordinator.audit_case(dict(r))

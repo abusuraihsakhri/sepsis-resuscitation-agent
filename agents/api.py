@@ -4,7 +4,7 @@ FastAPI REST API Server for Sepsis Resuscitation Agent.
 from typing import Dict, Any, List
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from .base import AuditLogger, PHIGuard
+from .base import AuditLogger, PHIGuard, SecurityException
 from .models import SystemTaskPayload, ConsensusDossier
 from .supervisor import SystemSupervisor
 
@@ -12,7 +12,7 @@ supervisor = SystemSupervisor(model_provider="mock")
 
 app = FastAPI(
     title="Sepsis Resuscitation Agent API",
-    description="Enterprise Distributed Component Platform (Privacy-Preserving Federated Healthcare & FHE)",
+    description="Synthetic-data demonstration of rule-based alerts. Not validated for clinical care or HIPAA compliance.",
     version="3.0.0-ENTERPRISE",
 )
 
@@ -37,7 +37,10 @@ def metrics():
 
 @app.post("/api/audit")
 def api_audit(payload: SystemTaskPayload):
-    dossier = supervisor.process_task(payload)
+    try:
+        dossier = supervisor.process_task(payload)
+    except SecurityException:
+        raise HTTPException(status_code=422, detail="Input contains a sensitive identifier")
     return dossier.to_dict()
 
 
@@ -46,8 +49,8 @@ def api_chat(req: ChatRequest):
     try:
         ans = supervisor.query_supervisory_chat(req.query)
         return {"response": ans}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except SecurityException:
+        raise HTTPException(status_code=422, detail="Input contains a sensitive identifier")
 
 
 @app.get("/api/audit/logs")

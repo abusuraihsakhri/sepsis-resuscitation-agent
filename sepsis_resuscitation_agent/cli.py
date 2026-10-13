@@ -17,13 +17,22 @@ def _validate_safe_path(file_path: str, must_exist: bool = False) -> Path:
     cwd = Path.cwd().resolve()
 
     # Prevent path traversal: ensure the resolved path is within the working directory
-    if not str(path).startswith(str(cwd)):
+    if not path.is_relative_to(cwd):
         raise ValueError(f"Path traversal detected: '{file_path}' resolves outside the working directory")
 
     if must_exist and not path.exists():
         raise FileNotFoundError(f"Input file not found: '{file_path}'")
 
     return path
+
+
+def _parse_csv_bool(value: str) -> bool:
+    normalized = str(value).strip().lower()
+    if normalized in ("true", "1", "yes", "y"):
+        return True
+    if normalized in ("false", "0", "no", "n", ""):
+        return False
+    raise ValueError("Invalid boolean in CSV; expected true/false, 1/0, or yes/no")
 
 
 def main(argv=None):
@@ -86,6 +95,8 @@ def main(argv=None):
         try:
             input_path = _validate_safe_path(args.input, must_exist=True)
             output_path = _validate_safe_path(args.output)
+            if output_path == input_path:
+                raise ValueError("Input and output paths must differ")
         except (ValueError, FileNotFoundError) as e:
             print(f"Error: {e}", file=sys.stderr)
             return 1
@@ -95,7 +106,10 @@ def main(argv=None):
             fieldnames = list(reader.fieldnames or [])
             rows = list(reader)
 
-        out_fields = fieldnames + ["overall_status", "total_alerts", "stat_critical_alerts", "consensus_summary"]
+        if not fieldnames:
+            print("Error: input CSV is missing a header", file=sys.stderr)
+            return 1
+        out_fields = list(dict.fromkeys(fieldnames + ["overall_status", "total_alerts", "stat_critical_alerts", "consensus_summary"]))
         out_rows = []
         for r in rows:
             case = ClinicalCasePayload(
@@ -104,7 +118,7 @@ def main(argv=None):
                 primary_metric=float(r.get("metric_primary", r.get("primary_metric", 15.0))),
                 secondary_metric=float(r.get("metric_secondary", r.get("secondary_metric", 5.0))),
                 status_flag=r.get("status_flag", r.get("status_text", "NORMAL")),
-                is_stat=bool(r.get("is_stat", r.get("critical_flag", False))),
+                is_stat=_parse_csv_bool(r.get("is_stat", r.get("critical_flag", "false"))),
             )
             dossier = coordinator.process_case(case)
             row_dict = dict(r)

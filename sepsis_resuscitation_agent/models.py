@@ -43,7 +43,7 @@ class AgentAlert:
     title: str
     clinical_finding: str
     actionable_recommendation: str
-    guideline_citation: str = "Surviving Sepsis Campaign 2021 & Sepsis-3"
+    guideline_citation: str = "Illustrative rules only; not a validated guideline implementation"
     timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
