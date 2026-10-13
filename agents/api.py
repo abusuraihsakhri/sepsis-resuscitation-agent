@@ -23,7 +23,7 @@ class ChatRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "HEALTHY", "service": "sepsis-resuscitation-agent", "domain": "Privacy-Preserving Federated Healthcare & FHE", "standard": "HIPAA Safe Harbor §164.514 / Google SecAgg Standards", "version": "3.0.0-ENTERPRISE"}
+    return {"status": "HEALTHY", "service": "sepsis-resuscitation-agent", "mode": "synthetic demonstration", "clinical_validation": False, "version": "2.0.1"}
 
 
 @app.get("/metrics")
@@ -31,7 +31,7 @@ def metrics():
     return {
         "dossiers_processed_total": len(supervisor.dossier_registry),
         "audit_blocks_total": len(AuditLogger.get_trail()),
-        "system_status": "NOMINAL_OPTIMAL"
+        "system_status": "DEMO_READY"
     }
 
 

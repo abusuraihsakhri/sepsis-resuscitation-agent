@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Sepsis Resuscitation Engine API",
-    "description": "Enterprise Distributed Component Platform (Clinical & Cryptographic AI) adhering to CAP / CLSI / NIST Standards.",
-    "version": "3.0.0-ENTERPRISE",
+    "title": "Sepsis Resuscitation Agent Demonstration API",
+    "description": "Local demonstration of arbitrary numeric threshold and keyword rules. Not a clinical guideline implementation, PHI-deidentification system, or medical device.",
+    "version": "2.0.1",
     "contact": {
       "name": "Dr. Abu Suraih Sakhri",
       "url": "https://github.com/abusuraihsakhri"
@@ -22,17 +22,17 @@
     },
     "/metrics": {
       "get": {
-        "summary": "Prometheus operational metrics",
+        "summary": "Return demonstration counters as JSON",
         "responses": {
           "200": {
-            "description": "Prometheus text metrics"
+            "description": "JSON object with dossiers_processed_total, audit_blocks_total and system_status"
           }
         }
       }
     },
     "/api/audit": {
       "post": {
-        "summary": "Dispatch task payload across specialized workers",
+        "summary": "Evaluate synthetic data using illustrative, nonclinical rules",
         "requestBody": {
           "content": {
             "application/json": {
@@ -69,14 +69,17 @@
         },
         "responses": {
           "200": {
-            "description": "Consensus dossier with HMAC signature"
+            "description": "Demonstration dossier and signed audit-block hash"
+          },
+          "422": {
+            "description": "Malformed input, nonfinite metric, or recognized sensitive identifier"
           }
         }
       }
     },
     "/api/chat": {
       "post": {
-        "summary": "Air-gapped supervisory conversational assistant",
+        "summary": "Query the deterministic local mock adapter (no LLM inference)",
         "requestBody": {
           "content": {
             "application/json": {
@@ -103,7 +106,7 @@
     },
     "/api/audit/logs": {
       "get": {
-        "summary": "Retrieve and cryptographically verify HMAC audit trail",
+        "summary": "Retrieve process-local audit signature metadata and chain verification",
         "responses": {
           "200": {
             "description": "Cryptographic audit trail"

@@ -38,7 +38,7 @@ python -m http.server 8080 --directory web
 
 Open `http://127.0.0.1:8080/` in a modern browser (Chrome, Firefox, Safari, Edge).
 
-The legacy `sepsis_resuscitation.py` and `sepsis_resuscitation_agent/` entry points are retained for backward compatibility. Their generic primary/secondary thresholds are illustrative only; they **do not** implement sepsis bundle timing, lactate clearance or patient-specific triage.
+The legacy `sepsis_resuscitation.py` and `sepsis_resuscitation_agent/` entry points are retained for backward compatibility. An example file for the clinical-formatted legacy CLI is `sample_clinical.csv` (use `python -m sepsis_resuscitation_agent.cli batch -i sample_clinical.csv -o clinical-results.csv`). Their generic primary/secondary thresholds are illustrative only; they **do not** implement sepsis bundle timing, lactate clearance or patient-specific triage.
 
 ## Local API
 

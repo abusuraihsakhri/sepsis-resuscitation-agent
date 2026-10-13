@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Sepsis-3 Resuscitation Sentinel: Dynamic Lactate Clearance & Bundle Compliance Agent
-Surveils Surviving Sepsis 1h/3h bundles, monitoring 30mL/kg crystalloid delivery, blood culture timing, broad-spectrum abx, and lactate clearance %.
+Historical rule/keyword demonstration; does not monitor actual bundles or compute lactate clearance.
 
 Domain: Critical Care
 Author: Dr. Abu Suraih Sakhri
@@ -142,7 +142,7 @@ class SepsisCoordinator:
         critical_count = sum(1 for a in all_alerts if a.severity == Severity.CRITICAL)
         warning_count = sum(1 for a in all_alerts if a.severity == Severity.WARNING)
 
-        overall_status = "CRITICAL_ACTION_REQUIRED" if critical_count > 0 else ("WARNING_ACTIVE" if warning_count > 0 else "CONCORDANT_NORMAL")
+        overall_status = "CRITICAL_ACTION_REQUIRED" if critical_count > 0 else ("WARNING_ACTIVE" if warning_count > 0 else ("ADVISORY_ACTIVE" if all_alerts else "CONCORDANT_NORMAL"))
 
         dossier = {
             "system": "sepsis-resuscitation-agent",
@@ -180,7 +180,7 @@ def create_app():
 
         app = FastAPI(
             title="Sepsis-3 Resuscitation Sentinel: Dynamic Lactate Clearance & Bundle Compliance Agent",
-            description="Surveils Surviving Sepsis 1h/3h bundles, monitoring 30mL/kg crystalloid delivery, blood culture timing, broad-spectrum abx, and lactate clearance %.",
+            description="Demonstration-only thresholds and keyword matching; not validated clinical surveillance.",
             version="1.0.0",
         )
 

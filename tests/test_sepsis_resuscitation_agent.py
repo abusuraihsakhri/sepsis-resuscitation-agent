@@ -183,3 +183,23 @@ def test_api_phi_rejection():
         })
         assert response.status_code == 422
         assert "1234567" not in response.text
+
+
+
+def test_api_contract_synthetic_payload():
+    from fastapi.testclient import TestClient
+    from agents.api import app
+    with TestClient(app) as client:
+        health = client.get("/health")
+        assert health.status_code == 200
+        assert health.json()["clinical_validation"] is False
+        response = client.post("/api/audit", json={
+            "task_id": "DEMO-API", "target_identifier": "SYNTH-API",
+            "primary_metric": 28, "secondary_metric": 3,
+            "status_descriptor": "NOMINAL", "is_critical_flag": False
+        })
+        assert response.status_code == 200
+        assert response.json()["task_id"] == "DEMO-API"
+        assert isinstance(client.get("/metrics").json()["dossiers_processed_total"], int)
+        assert "audit_trail" in client.get("/api/audit/logs").json()
+        assert "No model inference" in client.post("/api/chat", json={"query":"system status"}).json()["response"]

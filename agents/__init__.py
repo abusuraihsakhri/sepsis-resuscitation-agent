@@ -1,7 +1,6 @@
 """
-Sepsis Resuscitation Agent — Enterprise Automated Analytical Suite.
-Domain: Privacy-Preserving Federated Healthcare & FHE
-Standard: HIPAA Safe Harbor §164.514 / Google SecAgg Standards
+Sepsis Resuscitation Agent — Local synthetic-data rules demonstration.
+Not a validated clinical tool or HIPAA de-identification system.
 
 """
 __version__ = "3.0.0-ENTERPRISE"
