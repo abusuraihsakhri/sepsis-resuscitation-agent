@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Sepsis-3 Resuscitation Sentinel: Dynamic Lactate Clearance & Bundle Compliance Agent
-Surveils Surviving Sepsis 1h/3h bundles, monitoring 30mL/kg crystalloid delivery, blood culture timing, broad-spectrum abx, and lactate clearance %.
+Historical rule/keyword demonstration; does not monitor actual bundles or compute lactate clearance.
 
 Domain: Critical Care
 Author: Dr. Abu Suraih Sakhri
@@ -32,15 +32,15 @@ class Severity(str):
 class DomainKnowledgeRegistry:
     """Enterprise domain rules, guideline matrices, and evidence benchmarks."""
     SYSTEM_VERSION = "2.0.0-PRO-CLINICAL"
-    ZERO_PHI_COMPLIANCE = True
-    HIPAA_SAFE_HARBOR = "ACTIVE_ON_PREMISES"
+    ZERO_PHI_COMPLIANCE = False  # Regex screening cannot establish de-identification or HIPAA compliance
+    HIPAA_SAFE_HARBOR = "NOT_VERIFIED"
 
     @staticmethod
     def audit_security_and_integrity(payload: Dict[str, Any]) -> List[str]:
         warnings = []
         for key in payload.keys():
             if any(phi_keyword in key.lower() for phi_keyword in ["patient_name", "ssn", "mrn_raw", "dob_raw"]):
-                warnings.append(f"PHI_DEFENSE_TRIGGERED: Direct identifier '{key}' masked to synthetic token.")
+                warnings.append(f"PHI_DEFENSE_TRIGGERED: Direct identifier '{key}' requires manual exclusion; no masking was performed.")
         return warnings
 
 class AgentAlert:
@@ -88,7 +88,7 @@ class LactateKineticsAgent:
     """Specialized Sub-Agent 2 for sepsis-resuscitation-agent"""
     def evaluate(self, payload: Dict[str, Any]) -> List[AgentAlert]:
         alerts = []
-        is_critical = bool(payload.get("critical_flag", False))
+        is_critical = str(payload.get("critical_flag", "false")).strip().lower() in ("true", "1", "yes", "y")
         val2 = float(payload.get("metric_secondary", 5.0))
         if is_critical or val2 > 12.0:
             alerts.append(
@@ -124,7 +124,7 @@ class VasopressorTitrationAgent:
 
 
 class SepsisCoordinator:
-    """Executive Coordinator Agent for sepsis-resuscitation-agent"""
+    """Historical illustrative coordinator; not a clinical decision system."""
     def __init__(self):
         self.sub_agent_1 = BundleClockTimerAgent()
         self.sub_agent_2 = LactateKineticsAgent()
@@ -142,7 +142,7 @@ class SepsisCoordinator:
         critical_count = sum(1 for a in all_alerts if a.severity == Severity.CRITICAL)
         warning_count = sum(1 for a in all_alerts if a.severity == Severity.WARNING)
 
-        overall_status = "CRITICAL_ACTION_REQUIRED" if critical_count > 0 else ("WARNING_ACTIVE" if warning_count > 0 else "CONCORDANT_NORMAL")
+        overall_status = "CRITICAL_ACTION_REQUIRED" if critical_count > 0 else ("WARNING_ACTIVE" if warning_count > 0 else ("ADVISORY_ACTIVE" if all_alerts else "CONCORDANT_NORMAL"))
 
         dossier = {
             "system": "sepsis-resuscitation-agent",
@@ -165,9 +165,9 @@ class SepsisCoordinator:
         if "summary" in q or "status" in q:
             return f"Sepsis-3 Resuscitation Sentinel: Dynamic Lactate Clearance & Bundle Compliance Agent currently tracking {len(self.case_registry)} cases in local air-gapped memory."
         elif "guidelines" in q or "protocol" in q:
-            return "All sub-agents operate under validated consensus clinical algorithms and CAP/CLSI/NCCN/WHO standards."
+            return "These historical demonstration thresholds do not implement current guidelines, standards, or validated clinical algorithms."
         else:
-            return f"Sepsis-3 Resuscitation Sentinel: Dynamic Lactate Clearance & Bundle Compliance Agent executive agent online. Continuous supervisory monitoring active across all domain parameters."
+            return "Local demonstration coordinator ready. No continuous physiological monitoring is implemented."
 
 
 coordinator = SepsisCoordinator()
@@ -180,7 +180,7 @@ def create_app():
 
         app = FastAPI(
             title="Sepsis-3 Resuscitation Sentinel: Dynamic Lactate Clearance & Bundle Compliance Agent",
-            description="Surveils Surviving Sepsis 1h/3h bundles, monitoring 30mL/kg crystalloid delivery, blood culture timing, broad-spectrum abx, and lactate clearance %.",
+            description="Demonstration-only thresholds and keyword matching; not validated clinical surveillance.",
             version="1.0.0",
         )
 
@@ -272,8 +272,12 @@ def main(argv=None):
             cwd = Path.cwd().resolve()
 
             # Prevent path traversal: ensure paths are within the working directory
-            if not str(input_path).startswith(str(cwd)) or not str(output_path).startswith(str(cwd)):
+            if not input_path.is_relative_to(cwd) or not output_path.is_relative_to(cwd):
                 print("Error: Path traversal detected. Paths must be within the working directory.", file=sys.stderr)
+                return 1
+
+            if input_path == output_path:
+                print("Error: Input and output paths must differ.", file=sys.stderr)
                 return 1
 
             if not input_path.exists():
@@ -289,7 +293,10 @@ def main(argv=None):
             fieldnames = list(reader.fieldnames or [])
             rows = list(reader)
 
-        out_fields = fieldnames + ["overall_status", "total_alerts", "critical_count", "consensus_summary"]
+        if not fieldnames:
+            print("Error: input CSV is missing a header", file=sys.stderr)
+            return 1
+        out_fields = list(dict.fromkeys(fieldnames + ["overall_status", "total_alerts", "critical_count", "consensus_summary"]))
         out_rows = []
         for r in rows:
             dossier = coordinator.audit_case(dict(r))

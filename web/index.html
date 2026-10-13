@@ -1,236 +1,91 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sepsis Resuscitation Engine — Operations Console</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #090d16;
-            --card: #111827;
-            --border: #1f293d;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.25);
-            --text: #f3f4f6;
-            --text-muted: #9ca3af;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 2rem;
-            min-height: 100vh;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .header-title h1 { font-size: 1.6rem; font-weight: 700; color: #fff; }
-        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
-        .badge {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: var(--accent-glow);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 1.5rem;
-        }
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .card h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.65rem 0.9rem;
-            background: #0d1322;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-        input:focus, textarea:focus { outline: none; border-color: var(--accent); }
-        .btn {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 0.7rem 1.4rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-        }
-        .btn:hover { background: #2563eb; }
-        .terminal {
-            background: #060911;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: #10b981;
-            height: 380px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        .metrics-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .metric-box {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-        .metric-val { font-size: 1.4rem; font-weight: 700; color: #fff; margin-top: 0.25rem; }
-        .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Client-side arithmetic sandbox for synthetic adult sepsis resuscitation examples. Not for patient care.">
+  <meta name="theme-color" content="#0b1422">
+  <title>Sepsis Resuscitation · Educational Sandbox</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      --bg:#0b1422;--surface:#122238;--border:#29405b;--ink:#edf5ff;--muted:#b8cbe0;--accent:#68c2ec; }
+    * { box-sizing: border-box; }
+    body { margin:0;background:var(--bg);color:var(--ink);line-height:1.55; }
+    main { max-width:1120px; margin:auto; padding:clamp(18px,4vw,48px); }
+    h1 { margin:.1rem 0 .5rem;font-size:clamp(1.7rem,3.5vw,2.5rem);letter-spacing:-.035em; }
+    h2 { margin:0 0 1.1rem;font-size:1.12rem; }
+    p { margin:.6rem 0; } a { color:#9cddff; }
+    .eyebrow { text-transform:uppercase;letter-spacing:.14em;color:var(--accent);font-size:.76rem;font-weight:700; }
+    .lede {color:var(--muted);max-width:70ch;}
+    .warning { border-left:4px solid #ffc16c; padding:13px 16px;background:#2b2631;border-radius:3px 10px 10px 3px;margin:24px 0;}
+    .columns {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;}
+    section.panel {background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;min-width:0;}
+    .fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+    .field.wide {grid-column:1/-1;}
+    label {display:block;font-size:.89rem;font-weight:650;margin-bottom:6px;}
+    .hint {color:var(--muted);font-size:.8rem;display:block;margin-top:4px;}
+    input,select {width:100%;background:#0a182a;color:var(--ink);border:1px solid #55718d;border-radius:7px;padding:12px;font:inherit;}
+    input:focus-visible, select:focus-visible,button:focus-visible,a:focus-visible {outline:3px solid #9cddff;outline-offset:2px;}
+    button {background:var(--accent);color:#091b2a;border:0;padding:12px 17px;border-radius:8px;font-weight:750;font:inherit;cursor:pointer;}
+    button:hover {background:#9cddff;} button:disabled {opacity:.45;cursor:not-allowed;}
+    .actions {display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;}
+    .actions .secondary {background:#263c54;color:var(--ink);border:1px solid #7390ae;}
+    pre {white-space:pre-wrap;overflow-wrap:anywhere;font: .87rem/1.7 ui-monospace,Consolas,monospace;background:#0a182a;border:1px solid var(--border);padding:18px;border-radius:9px;min-height:320px;margin:12px 0;}
+    .small {font-size:.84rem;color:var(--muted);}
+    footer {padding:26px 0;color:var(--muted);font-size:.86rem;}
+    @media(max-width:780px){.columns{grid-template-columns:1fr;}section.panel{padding:18px;}}
+    @media(max-width:440px){.fields{grid-template-columns:1fr;}}
+  </style>
 </head>
 <body>
-
-    <div class="header">
-        <div class="header-title">
-            <h1>Sepsis Resuscitation Engine</h1>
-            <p>Domain: Clinical & Cryptographic AI | Standard: CAP / CLSI / NIST Standards | LabMind-Atlas Architecture</p>
+<main>
+  <header>
+    <div class="eyebrow">Synthetic data · Browser-only demonstration</div>
+    <h1>Sepsis resuscitation arithmetic sandbox</h1>
+    <p class="lede">Explore lactate trends, a conditional weight-based crystalloid reference, and antimicrobial timing reference intervals for hypothetical adult scenarios.</p>
+  </header>
+  <aside class="warning" role="note"><strong>Not a clinical decision-support system.</strong> This page does not diagnose sepsis, assess resuscitation adequacy, recommend fluid or vasopressor administration, or certify guideline compliance. Never enter real patient data. Clinical decisions require qualified review and local protocols.</aside>
+  <div class="columns">
+    <section class="panel" aria-labelledby="input-title">
+      <h2 id="input-title">Synthetic scenario</h2>
+      <form id="scenario-form">
+        <div class="fields">
+          <div class="field wide"><label for="context">Illustrative clinical context</label>
+            <select id="context" required>
+              <option value="shock">Possible / probable / definite septic shock</option>
+              <option value="probable">Probable / definite sepsis without shock</option>
+              <option value="possible">Possible sepsis without shock</option>
+              <option value="unspecified">Not specified (no timing reference)</option>
+            </select>
+            <span class="hint">Select manually; the tool does not infer clinical likelihood.</span>
+          </div>
+          <div class="field"><label for="weight">Reference body weight (kg)</label><input data-label="weight" type="number" id="weight" min="1" max="500" step="any" value="70" required></div>
+          <div class="field"><label for="fluid">Crystalloid documented (mL)</label><input data-label="fluid volume" type="number" id="fluid" min="0" max="30000" step="any" value="1050" required></div>
+          <div class="field"><label for="lactate-initial">Initial lactate (mmol/L)</label><input data-label="initial lactate" type="number" id="lactate-initial" min="0.01" max="50" step="any" value="4" required></div>
+          <div class="field"><label for="lactate-repeat">Follow-up lactate (mmol/L)</label><input data-label="repeat lactate" type="number" id="lactate-repeat" min="0" max="50" step="any" value="3" required></div>
+          <div class="field"><label for="map">Observed MAP (mmHg)</label><input data-label="MAP" type="number" id="map" min="0" max="250" step="any" value="64" required></div>
+          <div class="field"><label for="elapsed">Minutes since recognition</label><input data-label="elapsed time" type="number" id="elapsed" min="0" max="10080" step="any" value="100" required></div>
+          <div class="field wide"><label for="antibiotic">Minutes from recognition to antimicrobial initiation (optional)</label><input type="number" id="antibiotic" min="0" max="10080" step="any" value="55"><span class="hint">Blank means undocumented. This is not a treatment or stewardship recommendation.</span></div>
         </div>
-        <div>
-            <span class="badge">Air-Gapped Active</span>
-            <span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border-color: #10b981;">Zero-PHI Guard Active</span>
+        <div class="actions">
+          <button type="submit">Calculate example</button>
+          <button class="secondary" type="button" id="download-button" disabled>Export example JSON</button>
         </div>
-    </div>
-
-    <div class="metrics-bar">
-        <div class="metric-box">
-            <div class="metric-label">System Status</div>
-            <div class="metric-val" style="color: var(--success);" id="m-status">OPTIMAL</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Tasks Processed</div>
-            <div class="metric-val" id="m-tasks">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Audit Blocks Signed</div>
-            <div class="metric-val" id="m-audit">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">PHI Interceptions</div>
-            <div class="metric-val" style="color: var(--accent);" id="m-phi">0</div>
-        </div>
-    </div>
-
-    <div class="grid">
-        <div class="card">
-            <h2>⚙️ Dispatch Distributed Component Audit</h2>
-            <div class="form-group">
-                <label>Task / Sample ID</label>
-                <input type="text" id="task_id" value="TASK-2026-LIVE-01">
-            </div>
-            <div class="form-group">
-                <label>Target Identifier</label>
-                <input type="text" id="target_id" value="SPECIMEN-ALPHA-77">
-            </div>
-            <div class="form-group">
-                <label>Primary Measurement / Value</label>
-                <input type="number" id="primary_metric" value="29.4" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Secondary Metric / Kinetic Index</label>
-                <input type="number" id="secondary_metric" value="14.8" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Status / Phenotype Descriptor</label>
-                <input type="text" id="status_descriptor" value="DISCORDANT_ANOMALY">
-            </div>
-            <div class="form-group">
-                <label><input type="checkbox" id="is_critical" checked> Trigger Emergency / Critical Flag</label>
-            </div>
-            <button class="btn" onclick="runAudit()">Execute Distributed Component Audit</button>
-        </div>
-
-        <div class="card">
-            <h2>📊 Real-Time Consensus Dossier & Audit Log</h2>
-            <div class="terminal" id="outputConsole">// Sepsis Resuscitation Engine Operations Console Ready
-// Connection established with Air-Gapped Supervisor
-// Cryptographic HMAC-SHA256 audit ledger loaded.
-// Ready for live task payload dispatch...</div>
-        </div>
-    </div>
-
-    <script>
-        async function runAudit() {
-            const consoleEl = document.getElementById('outputConsole');
-            consoleEl.innerText = "// Dispatching task across specialized workers...
-// Invoking InvariantQCWorker, SafetyEscalationWorker, ProtocolWorker...";
-
-            const payload = {
-                task_id: document.getElementById('task_id').value,
-                target_identifier: document.getElementById('target_id').value,
-                primary_metric: parseFloat(document.getElementById('primary_metric').value),
-                secondary_metric: parseFloat(document.getElementById('secondary_metric').value),
-                status_descriptor: document.getElementById('status_descriptor').value,
-                is_critical_flag: document.getElementById('is_critical').checked
-            };
-
-            try {
-                const res = await fetch('/api/audit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                consoleEl.innerText = JSON.stringify(data, null, 2);
-                document.getElementById('m-tasks').innerText = parseInt(document.getElementById('m-tasks').innerText) + 1;
-                document.getElementById('m-audit').innerText = parseInt(document.getElementById('m-audit').innerText) + 1;
-            } catch (err) {
-                consoleEl.innerText = "// Offline / Simulation Output:\n" + JSON.stringify({
-                    dossier_id: "DOSSIER-SIM-" + Math.floor(Math.random()*10000),
-                    system: "sepsis-resuscitation-engine",
-                    domain: "Clinical & Cryptographic AI",
-                    task_id: payload.task_id,
-                    overall_urgency: payload.is_critical_flag ? "CRITICAL_STAT_PANIC" : "ELEVATED_RISK",
-                    integrity_status: "DISCORDANT_ANOMALY",
-                    alerts: [
-                        { worker: "InvariantQCWorker", alert: "Primary metric exceeds upper reference bound" },
-                        { worker: "SafetyEscalationWorker", alert: "Critical emergency interlock flag active" }
-                    ],
-                    audit_hash: "HMAC_SHA256_e83f9a72b941d6c381f9"
-                }, null, 2);
-            }
-        }
-    </script>
+      </form>
+    </section>
+    <section class="panel" aria-labelledby="output-title">
+      <h2 id="output-title">Calculated values</h2>
+      <p class="small" id="status-message" role="status" aria-live="polite">Enter hypothetical values and select Calculate example.</p>
+      <pre id="result-output" aria-live="polite">No calculations yet.</pre>
+      <p class="small">Outputs are arithmetic summaries, not treatment thresholds or guideline-compliance determinations.</p>
+    </section>
+  </div>
+  <footer>
+    <p><strong>Evidence context:</strong> <a href="https://sccm.org/survivingsepsiscampaign/guidelines-and-resources/surviving-sepsis-campaign-adult-guidelines" rel="noopener noreferrer">Surviving Sepsis Campaign adult guidelines (2026)</a>. The 30 mL/kg suggestion is conditional, limited to sepsis-induced hypoperfusion or septic shock, and calls for individualized reassessment. Lactate interpretation and antimicrobial timing depend on the clinical context.</p>
+    <p><strong>Privacy:</strong> No cookies, analytics, external requests, server calls, or browser storage are used by the calculator. Exports are generated entirely in your browser. This is not a HIPAA-compliant patient record system.</p>
+    <p>Source code: <a href="https://github.com/abusuraihsakhri/sepsis-resuscitation-agent" rel="noopener noreferrer">GitHub repository</a></p>
+  </footer>
+</main>
+<script type="module" src="./app.mjs"></script>
 </body>
 </html>

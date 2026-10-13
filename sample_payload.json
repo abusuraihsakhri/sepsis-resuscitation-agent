@@ -1,13 +1,12 @@
 {
-  "case_id": "CASE-2026-8841",
-  "patient_synthetic_id": "SYNTH-PT-9011",
+  "task_id": "DEMO-001",
+  "target_identifier": "SYNTH-001",
   "primary_metric": 28.4,
   "secondary_metric": 16.2,
-  "status_flag": "DISCORDANT",
-  "is_stat": true,
-  "clinical_notes": "Automated supervisory surveillance trigger under Surviving Sepsis Campaign 2021 & Sepsis-3 protocol.",
-  "biomarkers": {
-    "marker_alpha": "ELEVATED",
-    "concordance_score": 0.42
+  "status_descriptor": "DISCORDANT",
+  "is_critical_flag": true,
+  "attributes": {
+    "data_classification": "synthetic",
+    "purpose": "software demonstration"
   }
 }

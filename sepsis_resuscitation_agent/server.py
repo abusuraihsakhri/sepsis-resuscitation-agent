@@ -10,23 +10,25 @@ coordinator = SepsisCoordinator()
 def create_app():
     try:
         from fastapi import FastAPI
-        from pydantic import BaseModel
+        from pydantic import BaseModel, Field
+        from fastapi import HTTPException
+        from agents.base import assert_no_phi, SecurityException
 
         app = FastAPI(
             title="Sepsis-3 Resuscitation Sentinel: Dynamic Lactate Clearance & Bundle Compliance Agent",
-            description="Surveils Surviving Sepsis 1h/3h bundles, monitoring 30mL/kg crystalloid delivery, blood culture timing, broad-spectrum abx, and lactate clearance %.",
+            description="Historical threshold and keyword demonstration. Does not implement actual bundle timing, lactate clearance, or validated clinical alerts.",
             version="2.0.0-PRO",
         )
 
         class AuditRequest(BaseModel):
             case_id: str = "CASE-2026-001"
             patient_synthetic_id: str = "SYNTH-PT-881"
-            primary_metric: float = 24.5
-            secondary_metric: float = 14.0
+            primary_metric: float = Field(default=24.5, allow_inf_nan=False)
+            secondary_metric: float = Field(default=14.0, allow_inf_nan=False)
             status_flag: str = "DISCORDANT"
             is_stat: bool = True
             clinical_notes: str = ""
-            biomarkers: Dict[str, Any] = {}
+            biomarkers: Dict[str, Any] = Field(default_factory=dict)
 
         class ChatRequest(BaseModel):
             query: str
@@ -37,6 +39,10 @@ def create_app():
 
         @app.post("/api/audit")
         def api_audit(req: AuditRequest):
+            try:
+                assert_no_phi(req.model_dump())
+            except SecurityException:
+                raise HTTPException(status_code=422, detail="Input contains a sensitive identifier")
             payload = ClinicalCasePayload(
                 case_id=req.case_id,
                 patient_synthetic_id=req.patient_synthetic_id,

@@ -18,13 +18,22 @@ def _validate_safe_path(file_path: str, must_exist: bool = False) -> Path:
     cwd = Path.cwd().resolve()
 
     # Prevent path traversal: ensure the resolved path is within the working directory
-    if not str(path).startswith(str(cwd)):
+    if not path.is_relative_to(cwd):
         raise ValueError(f"Path traversal detected: '{file_path}' resolves outside the working directory")
 
     if must_exist and not path.exists():
         raise FileNotFoundError(f"Input file not found: '{file_path}'")
 
     return path
+
+
+def _parse_csv_bool(value: str) -> bool:
+    normalized = str(value).strip().lower()
+    if normalized in ("true", "1", "yes", "y"):
+        return True
+    if normalized in ("false", "0", "no", "n", ""):
+        return False
+    raise ValueError("Invalid boolean in CSV; expected true/false, 1/0, or yes/no")
 
 
 def main(argv=None):
@@ -71,7 +80,7 @@ def main(argv=None):
         dossier = supervisor.process_task(payload)
         print("=" * 80)
         print(f"  SEPSIS RESUSCITATION AGENT")
-        print(f"  Domain: Privacy-Preserving Federated Healthcare & FHE | Standard: HIPAA Safe Harbor §164.514 / Google SecAgg Standards")
+        print(f"  Synthetic rule demonstration only | Not a clinical or HIPAA compliance audit")
         print(f"  Dossier ID: {dossier.dossier_id} | Urgency: [{dossier.overall_urgency.value}]")
         print("=" * 80)
         for a in dossier.alerts:
@@ -97,8 +106,9 @@ def main(argv=None):
     if args.command == "batch":
         try:
             input_path = _validate_safe_path(args.input, must_exist=True)
-            output_path = _validate_safe_path(args.input + ".validated")  # temp to validate output dir
             output_path = _validate_safe_path(args.output)
+            if output_path == input_path:
+                raise ValueError("Input and output paths must differ")
         except (ValueError, FileNotFoundError) as e:
             print(f"Error: {e}", file=sys.stderr)
             return 1
@@ -108,7 +118,10 @@ def main(argv=None):
             fieldnames = list(reader.fieldnames or [])
             rows = list(reader)
 
-        out_fields = fieldnames + ["overall_urgency", "integrity_status", "total_alerts", "audit_hash"]
+        if not fieldnames:
+            print("Error: input CSV is missing a header", file=sys.stderr)
+            return 1
+        out_fields = list(dict.fromkeys(fieldnames + ["overall_urgency", "integrity_status", "total_alerts", "audit_hash"]))
         out_rows = []
         for r in rows:
             payload = SystemTaskPayload(
@@ -117,7 +130,7 @@ def main(argv=None):
                 primary_metric=float(r.get("primary_metric", 15.0)),
                 secondary_metric=float(r.get("secondary_metric", 5.0)),
                 status_descriptor=r.get("status_descriptor", "NOMINAL"),
-                is_critical_flag=bool(r.get("is_critical_flag", False)),
+                is_critical_flag=_parse_csv_bool(r.get("is_critical_flag", "false")),
             )
             dossier = supervisor.process_task(payload)
             row_dict = dict(r)

@@ -33,5 +33,18 @@ def test_cli():
 
 def test_domain_registry():
     from sepsis_resuscitation import DomainKnowledgeRegistry
-    assert DomainKnowledgeRegistry.ZERO_PHI_COMPLIANCE is True
+    assert DomainKnowledgeRegistry.ZERO_PHI_COMPLIANCE is False
     assert "PRO" in DomainKnowledgeRegistry.SYSTEM_VERSION
+
+
+def test_advisory_only_is_not_reported_as_normal():
+    from sepsis_resuscitation import SepsisCoordinator
+    dossier = SepsisCoordinator().audit_case({
+        "case_id": "SYNTH-ADVISORY",
+        "metric_primary": 1.0,
+        "metric_secondary": 1.0,
+        "critical_flag": False,
+        "status_text": "DISCORDANT",
+    })
+    assert dossier["total_alerts"] == 1
+    assert dossier["overall_status"] == "ADVISORY_ACTIVE"

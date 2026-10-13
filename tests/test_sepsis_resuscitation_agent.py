@@ -123,3 +123,96 @@ def test_batch_processing_with_sample_csv():
             os.unlink(temp_input)
         if os.path.exists(temp_output):
             os.unlink(temp_output)
+
+
+
+def test_audit_signatures_detect_mutation():
+    trail = AuditTrail(secret_key="test-signature-key")
+    trail.log("worker", "test", "FIRST", {"sample": "synthetic"})
+    trail.log("worker", "test", "SECOND", {"sample": "synthetic"})
+    assert trail.verify_integrity()
+    snapshot = trail.get_trail()
+    snapshot[0]["actor"] = "injected"
+    assert trail.verify_integrity(), "Caller must not be able to edit audit log through API"
+    trail.logs[0]["actor"] = "injected"
+    assert not trail.verify_integrity(), "Signing every field must detect tampering"
+
+
+def test_nested_phi_and_nonfinite_values_rejected():
+    from pydantic import ValidationError
+    from agents.base import assert_no_phi
+    with pytest.raises(SecurityException):
+        assert_no_phi({"metadata": [{"notes": "MRN: 1234567"}]})
+    with pytest.raises(ValidationError):
+        SystemTaskPayload(task_id="T", target_identifier="X", primary_metric=float("nan"))
+
+
+def test_csv_boolean_parsing():
+    from cli import _parse_csv_bool
+    from sepsis_resuscitation_agent.cli import _parse_csv_bool as clinical_parse
+    for parser in (_parse_csv_bool, clinical_parse):
+        assert parser("false") is False
+        assert parser(" TRUE ") is True
+        assert parser("0") is False
+        with pytest.raises(ValueError):
+            parser("sometimes")
+
+
+def test_csv_batch_false_flag(tmp_path, monkeypatch):
+    import csv
+    import cli
+    monkeypatch.chdir(tmp_path)
+    with open("in.csv", "w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=["task_id","target_identifier","primary_metric","secondary_metric","is_critical_flag"])
+        writer.writeheader()
+        writer.writerow({"task_id":"T","target_identifier":"SYNTH","primary_metric":2,"secondary_metric":2,"is_critical_flag":"false"})
+    assert cli.main(["batch","-i","in.csv","-o","out.csv"]) == 0
+    with open("out.csv", newline="", encoding="utf-8") as handle:
+        row = next(csv.DictReader(handle))
+    assert row["overall_urgency"] == "ROUTINE"
+    assert cli.main(["batch","-i","in.csv","-o","in.csv"]) == 1
+
+
+def test_api_phi_rejection():
+    from fastapi.testclient import TestClient
+    from agents.api import app
+    with TestClient(app) as client:
+        response = client.post("/api/audit", json={
+            "task_id":"T", "target_identifier":"SYNTH",
+            "primary_metric":1, "attributes":{"notes":["MRN: 1234567"]}
+        })
+        assert response.status_code == 422
+        assert "1234567" not in response.text
+
+
+
+def test_api_contract_synthetic_payload():
+    from fastapi.testclient import TestClient
+    from agents.api import app
+    with TestClient(app) as client:
+        health = client.get("/health")
+        assert health.status_code == 200
+        assert health.json()["clinical_validation"] is False
+        response = client.post("/api/audit", json={
+            "task_id": "DEMO-API", "target_identifier": "SYNTH-API",
+            "primary_metric": 28, "secondary_metric": 3,
+            "status_descriptor": "NOMINAL", "is_critical_flag": False
+        })
+        assert response.status_code == 200
+        assert response.json()["task_id"] == "DEMO-API"
+        assert isinstance(client.get("/metrics").json()["dossiers_processed_total"], int)
+        assert "audit_trail" in client.get("/api/audit/logs").json()
+        assert "No model inference" in client.post("/api/chat", json={"query":"system status"}).json()["response"]
+
+
+
+def test_concurrent_audit_logging_keeps_valid_chain():
+    from concurrent.futures import ThreadPoolExecutor
+    trail = AuditTrail(secret_key="test-concurrent-key")
+    def make_entry(i):
+        return trail.log("worker", "test", "EVALUATE", {"index": i})
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        entries = list(executor.map(make_entry, range(100)))
+    assert len(entries) == 100
+    assert len(trail.get_trail()) == 100
+    assert trail.verify_integrity()
