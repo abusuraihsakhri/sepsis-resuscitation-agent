@@ -1,0 +1,15 @@
+.git
+.env
+.env.*
+!.env.example
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pyo
+*.log
+*.egg-info/
+dist/
+build/
+.vscode/
+.idea/
+node_modules/

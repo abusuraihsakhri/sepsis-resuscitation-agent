@@ -32,7 +32,7 @@ class Severity(str):
 class DomainKnowledgeRegistry:
     """Enterprise domain rules, guideline matrices, and evidence benchmarks."""
     SYSTEM_VERSION = "2.0.0-PRO-CLINICAL"
-    ZERO_PHI_COMPLIANCE = True
+    ZERO_PHI_COMPLIANCE = False  # Regex screening cannot establish de-identification or HIPAA compliance
     HIPAA_SAFE_HARBOR = "ACTIVE_ON_PREMISES"
 
     @staticmethod
@@ -40,7 +40,7 @@ class DomainKnowledgeRegistry:
         warnings = []
         for key in payload.keys():
             if any(phi_keyword in key.lower() for phi_keyword in ["patient_name", "ssn", "mrn_raw", "dob_raw"]):
-                warnings.append(f"PHI_DEFENSE_TRIGGERED: Direct identifier '{key}' masked to synthetic token.")
+                warnings.append(f"PHI_DEFENSE_TRIGGERED: Direct identifier '{key}' requires manual exclusion; no masking was performed.")
         return warnings
 
 class AgentAlert:
@@ -124,7 +124,7 @@ class VasopressorTitrationAgent:
 
 
 class SepsisCoordinator:
-    """Executive Coordinator Agent for sepsis-resuscitation-agent"""
+    """Historical illustrative coordinator; not a clinical decision system."""
     def __init__(self):
         self.sub_agent_1 = BundleClockTimerAgent()
         self.sub_agent_2 = LactateKineticsAgent()
@@ -165,9 +165,9 @@ class SepsisCoordinator:
         if "summary" in q or "status" in q:
             return f"Sepsis-3 Resuscitation Sentinel: Dynamic Lactate Clearance & Bundle Compliance Agent currently tracking {len(self.case_registry)} cases in local air-gapped memory."
         elif "guidelines" in q or "protocol" in q:
-            return "All sub-agents operate under validated consensus clinical algorithms and CAP/CLSI/NCCN/WHO standards."
+            return "These historical demonstration thresholds are not validated clinical algorithms or guideline-compliance checks."
         else:
-            return f"Sepsis-3 Resuscitation Sentinel: Dynamic Lactate Clearance & Bundle Compliance Agent executive agent online. Continuous supervisory monitoring active across all domain parameters."
+            return "Local demonstration coordinator ready. No continuous physiological monitoring is implemented."
 
 
 coordinator = SepsisCoordinator()

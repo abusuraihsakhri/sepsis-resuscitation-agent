@@ -4,6 +4,7 @@ Domain: Critical Care
 Standard: Surviving Sepsis Campaign 2021 & Sepsis-3
 """
 import datetime
+import math
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional, Any
@@ -33,6 +34,10 @@ class ClinicalCasePayload:
     clinical_notes: str = ""
     biomarkers: Dict[str, Any] = field(default_factory=dict)
     timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
+
+    def __post_init__(self):
+        if any(not math.isfinite(v) for v in (self.primary_metric, self.secondary_metric)):
+            raise ValueError("Clinical demonstration metrics must be finite numbers")
 
 
 @dataclass

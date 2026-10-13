@@ -80,7 +80,7 @@ def main(argv=None):
         dossier = supervisor.process_task(payload)
         print("=" * 80)
         print(f"  SEPSIS RESUSCITATION AGENT")
-        print(f"  Domain: Privacy-Preserving Federated Healthcare & FHE | Standard: HIPAA Safe Harbor §164.514 / Google SecAgg Standards")
+        print(f"  Synthetic rule demonstration only | Not a clinical or HIPAA compliance audit")
         print(f"  Dossier ID: {dossier.dossier_id} | Urgency: [{dossier.overall_urgency.value}]")
         print("=" * 80)
         for a in dossier.alerts:

@@ -22,3 +22,7 @@ sepsis-resuscitation-engine = "sepsis_resuscitation_agent.cli:main"
 [project.urls]
 Homepage = "https://github.com/abusuraihsakhri/sepsis-resuscitation-agent"
 Repository = "https://github.com/abusuraihsakhri/sepsis-resuscitation-agent"
+
+[tool.setuptools.packages.find]
+include = ["agents*", "sepsis_resuscitation_agent*"]
+namespaces = false

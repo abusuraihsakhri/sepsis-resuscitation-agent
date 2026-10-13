@@ -93,8 +93,8 @@ class SepsisCoordinator:
             "stat_critical_alerts": stat_count,
             "warning_alerts": warn_count,
             "alerts": [a.to_dict() for a in all_alerts],
-            "guideline_standard": "Surviving Sepsis Campaign 2021 & Sepsis-3",
-            "consensus_summary": f"Multi-agent supervision completed across 3 sub-agents with status [{status.value}].",
+            "guideline_standard": "Illustrative placeholder rules; not clinically validated",
+            "consensus_summary": f"Illustrative keyword/threshold evaluation completed with status [{status.value}]. Not a clinical assessment.",
         }
 
         self.case_registry[case.case_id] = dossier
@@ -105,6 +105,6 @@ class SepsisCoordinator:
         if "status" in q or "summary" in q:
             return f"Sepsis-3 Resuscitation Sentinel: Dynamic Lactate Clearance & Bundle Compliance Agent currently tracking {len(self.case_registry)} cases in on-premises memory."
         elif "guideline" in q or "standard" in q:
-            return "Active clinical surveillance operates under Surviving Sepsis Campaign 2021 & Sepsis-3 validated protocols."
+            return "This module contains historical illustrative placeholders, not a validated implementation of the 2026 Surviving Sepsis Campaign guidelines."
         else:
-            return f"Sepsis-3 Resuscitation Sentinel: Dynamic Lactate Clearance & Bundle Compliance Agent executive agent online. Zero-PHI air-gapped monitoring active."
+            return "Local demonstration coordinator available. No continuous monitoring, de-identification assurance, or clinical decision support is provided."
